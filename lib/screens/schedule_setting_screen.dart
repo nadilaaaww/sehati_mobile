@@ -8,123 +8,278 @@ class ScheduleSettingScreen extends StatefulWidget {
 }
 
 class _ScheduleSettingScreenState extends State<ScheduleSettingScreen> {
-  String _selectedDate = '';
-  String _selectedTime = '';
+  int selectedTimeIndex = -1;
+  final TextEditingController complaintController = TextEditingController();
 
-  Future<void> _showDateTimePicker(BuildContext context) async {
-    await showDialog(
+  final List<String> availableTimes = [
+    '08.00',
+    '08.30',
+    '09.00',
+    '09.30',
+    '10.00',
+    '10.30',
+    '11.00',
+    '11.30',
+  ];
+
+  @override
+  void dispose() {
+    complaintController.dispose();
+    super.dispose();
+  }
+
+  void _showBookingDetailModal({
+    required String name,
+    required String specialty,
+    required String schedule,
+    required String selectedDateText,
+    required String serviceType,
+  }) {
+    const Color primaryBlue = Color(0xFF2F5DAB);
+    const Color orange = Color(0xFFF47B20);
+
+    final String selectedTime = '${availableTimes[selectedTimeIndex]} WIB';
+    final String complaint = complaintController.text.trim().isEmpty
+        ? 'Tidak ada catatan tambahan'
+        : complaintController.text.trim();
+
+    showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
+        return Container(
+          padding: EdgeInsets.only(
+            left: 22,
+            right: 22,
+            top: 14,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 24,
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(32),
+              topRight: Radius.circular(32),
+            ),
+          ),
+          child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Center(
+                  child: Container(
+                    width: 50,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 22),
+
                 const Text(
-                  'Pilih Tanggal & Waktu',
+                  'Detail Booking',
                   style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF2F5DAB),
+                    color: primaryBlue,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
-                const SizedBox(height: 24),
-                // Pseudo-calendar header
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.chevron_left, color: Color(0xFF2F5DAB)),
-                      onPressed: () {},
-                    ),
-                    const Text(
-                      'Februari 2025',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.chevron_right, color: Color(0xFF2F5DAB)),
-                      onPressed: () {},
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                // Days header
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: ['S', 'M', 'T', 'W', 'T', 'F', 'S']
-                      .map((day) => Text(
-                            day,
-                            style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
-                          ))
-                      .toList(),
-                ),
-                const SizedBox(height: 12),
-                // Calendar grid mockup
-                GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 7,
-                    childAspectRatio: 1,
+
+                const SizedBox(height: 6),
+
+                Text(
+                  'Pastikan data booking sudah sesuai sebelum dikonfirmasi.',
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontSize: 13.5,
+                    height: 1.4,
                   ),
-                  itemCount: 31,
-                  itemBuilder: (context, index) {
-                    bool isSelected = index == 11; // Example: 12th is selected
-                    return Container(
-                      margin: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: isSelected ? const Color(0xFF2F5DAB) : Colors.transparent,
-                        shape: BoxShape.circle,
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        '${index + 1}',
-                        style: TextStyle(
-                          color: isSelected ? Colors.white : Colors.black87,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                ),
+
+                const SizedBox(height: 22),
+
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF6F8FC),
+                    borderRadius: BorderRadius.circular(22),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 62,
+                        height: 62,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEAF2FF),
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                        child: Icon(
+                          serviceType == 'Khitan'
+                              ? Icons.health_and_safety_rounded
+                              : Icons.person_rounded,
+                          color: primaryBlue,
+                          size: 34,
                         ),
                       ),
-                    );
-                  },
+
+                      const SizedBox(width: 14),
+
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: primaryBlue,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              specialty,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Colors.grey.shade600,
+                                fontSize: 13.5,
+                                height: 1.35,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 24),
-                // Time slots
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  alignment: WrapAlignment.center,
-                  children: [
-                    _buildTimeSlot('09:00 AM', false),
-                    _buildTimeSlot('10:00 AM', true),
-                    _buildTimeSlot('11:00 AM', false),
-                    _buildTimeSlot('01:00 PM', false),
-                  ],
+
+                const SizedBox(height: 18),
+
+                _buildModalInfoRow(
+                  icon: Icons.medical_services_rounded,
+                  title: 'Layanan',
+                  value: serviceType,
                 ),
-                const SizedBox(height: 32),
+                _buildModalInfoRow(
+                  icon: Icons.calendar_month_rounded,
+                  title: 'Tanggal',
+                  value: selectedDateText,
+                ),
+                _buildModalInfoRow(
+                  icon: Icons.access_time_rounded,
+                  title: 'Waktu',
+                  value: selectedTime,
+                ),
+                _buildModalInfoRow(
+                  icon: Icons.schedule_rounded,
+                  title: 'Jam Praktik',
+                  value: schedule,
+                ),
+
+                const SizedBox(height: 12),
+
+                const Text(
+                  'Keluhan / Catatan',
+                  style: TextStyle(
+                    color: primaryBlue,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+
+                const SizedBox(height: 8),
+
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF6F8FC),
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Text(
+                    complaint,
+                    style: TextStyle(
+                      color: Colors.grey.shade700,
+                      fontSize: 13.5,
+                      height: 1.45,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 26),
+
+                SizedBox(
+                  width: double.infinity,
+                  height: 54,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+
+                      Navigator.pushNamed(
+                        context,
+                        '/booking-success',
+                        arguments: {
+                          'name': name,
+                          'specialty': specialty,
+                          'schedule': schedule,
+                          'selectedDateText': selectedDateText,
+                          'serviceType': serviceType,
+                          'selectedTime': selectedTime,
+                          'complaint': complaint,
+                          'bookingNumber': 'BK-120225-001',
+                        },
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: orange,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                    ),
+                    child: const Text(
+                      'Konfirmasi Booking',
+                      style: TextStyle(
+                        fontSize: 16.5,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
                 SizedBox(
                   width: double.infinity,
                   height: 50,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        _selectedDate = '12 Feb 2025';
-                        _selectedTime = '10:00 AM';
-                      });
-                      Navigator.pop(context);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFF47B20),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: primaryBlue,
+                      side: const BorderSide(
+                        color: primaryBlue,
+                        width: 1.4,
                       ),
-                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18),
+                      ),
                     ),
-                    child: const Text('Konfirmasi', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    child: const Text(
+                      'Periksa Lagi',
+                      style: TextStyle(
+                        fontSize: 15.5,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -135,97 +290,369 @@ class _ScheduleSettingScreenState extends State<ScheduleSettingScreen> {
     );
   }
 
-  Widget _buildTimeSlot(String time, bool isSelected) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: isSelected ? const Color(0xFFF47B20) : Colors.white,
-        border: Border.all(color: isSelected ? const Color(0xFFF47B20) : Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        time,
-        style: TextStyle(
-          color: isSelected ? Colors.white : Colors.grey.shade700,
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-        ),
-      ),
-    );
-  }
+  @override
+  Widget build(BuildContext context) {
+    const Color primaryBlue = Color(0xFF2F5DAB);
+    const Color orange = Color(0xFFF47B20);
+    const Color bgColor = Color(0xFFF5F7FA);
 
-  Future<void> _showBookingDetailModal(BuildContext context) async {
-    await showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (BuildContext context) {
-        return Container(
-          padding: const EdgeInsets.all(24),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(32),
-              topRight: Radius.circular(32),
-            ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 50,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+    final args =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+
+    final String name = args?['name'] ?? 'Dokter';
+    final String specialty = args?['specialty'] ?? 'Layanan kesehatan';
+    final String schedule = args?['schedule'] ?? '-';
+    final String selectedDateText = args?['selectedDateText'] ?? '-';
+    final String serviceType = args?['serviceType'] ?? 'Dokter';
+
+    return Scaffold(
+      backgroundColor: bgColor,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+              decoration: const BoxDecoration(
+                color: primaryBlue,
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(28),
+                  bottomRight: Radius.circular(28),
                 ),
               ),
-              const SizedBox(height: 24),
-              const Text(
-                'Detail Booking',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF2F5DAB),
-                ),
-              ),
-              const SizedBox(height: 24),
-              // Doctor Info
-              Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF5F7FA),
-                      borderRadius: BorderRadius.circular(16),
-                      image: const DecorationImage(
-                        image: NetworkImage('https://i.pravatar.cc/150?img=11'),
-                        fit: BoxFit.cover,
+                  Row(
+                    children: [
+                      Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.18),
+                          shape: BoxShape.circle,
+                        ),
+                        child: IconButton(
+                          icon: const Icon(
+                            Icons.arrow_back_ios_new_rounded,
+                            color: Colors.white,
+                            size: 19,
+                          ),
+                          onPressed: () => Navigator.pop(context),
+                        ),
                       ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        'Pilih Waktu',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 21,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 22),
+
+                  const Text(
+                    'Tentukan jam kunjungan Anda',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      height: 1.4,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  const Expanded(
+
+                  const SizedBox(height: 6),
+
+                  Text(
+                    'Tanggal dan layanan sudah dipilih. Sekarang pilih waktu kunjungan yang tersedia.',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.78),
+                      fontSize: 13.5,
+                      height: 1.4,
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  Row(
+                    children: [
+                      _buildStepItem('1', 'Layanan', true),
+                      _buildStepLine(),
+                      _buildStepItem('2', 'Tanggal', true),
+                      _buildStepLine(),
+                      _buildStepItem('3', 'Waktu', true),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 18,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'dr. Yoshinori, Sp. PD',
+                        const Text(
+                          'Ringkasan Pilihan',
                           style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF2F5DAB),
+                            color: primaryBlue,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w900,
                           ),
                         ),
-                        SizedBox(height: 4),
-                        Text(
-                          'Spesialis Penyakit Dalam',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey,
+
+                        const SizedBox(height: 16),
+
+                        Row(
+                          children: [
+                            Container(
+                              width: 62,
+                              height: 62,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEAF2FF),
+                                borderRadius: BorderRadius.circular(18),
+                              ),
+                              child: Icon(
+                                serviceType == 'Khitan'
+                                    ? Icons.health_and_safety_rounded
+                                    : Icons.person_rounded,
+                                color: primaryBlue,
+                                size: 34,
+                              ),
+                            ),
+
+                            const SizedBox(width: 14),
+
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    name,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: primaryBlue,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w900,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    specialty,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: Colors.grey.shade600,
+                                      fontSize: 13.5,
+                                      height: 1.35,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 18),
+
+                        _buildSummaryRow(
+                          icon: Icons.medical_services_rounded,
+                          title: 'Layanan',
+                          value: serviceType,
+                        ),
+                        const SizedBox(height: 12),
+                        _buildSummaryRow(
+                          icon: Icons.calendar_month_rounded,
+                          title: 'Tanggal',
+                          value: selectedDateText,
+                        ),
+                        const SizedBox(height: 12),
+                        _buildSummaryRow(
+                          icon: Icons.access_time_rounded,
+                          title: 'Jam Praktik',
+                          value: schedule,
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  const Text(
+                    'Pilih Jam Kunjungan',
+                    style: TextStyle(
+                      color: primaryBlue,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  Text(
+                    'Pilih salah satu waktu yang masih tersedia.',
+                    style: TextStyle(
+                      color: Colors.grey.shade600,
+                      fontSize: 13.5,
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: availableTimes.length,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      mainAxisSpacing: 12,
+                      crossAxisSpacing: 12,
+                      childAspectRatio: 2.25,
+                    ),
+                    itemBuilder: (context, index) {
+                      final bool isSelected = selectedTimeIndex == index;
+
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            selectedTimeIndex = index;
+                          });
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 220),
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: isSelected ? orange : Colors.white,
+                            borderRadius: BorderRadius.circular(17),
+                            border: Border.all(
+                              color: isSelected
+                                  ? orange
+                                  : Colors.grey.shade200,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: isSelected
+                                    ? orange.withOpacity(0.25)
+                                    : Colors.black.withOpacity(0.035),
+                                blurRadius: 14,
+                                offset: const Offset(0, 7),
+                              ),
+                            ],
+                          ),
+                          child: Text(
+                            '${availableTimes[index]} WIB',
+                            style: TextStyle(
+                              color: isSelected ? Colors.white : primaryBlue,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  const Text(
+                    'Keluhan / Catatan',
+                    style: TextStyle(
+                      color: primaryBlue,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  Text(
+                    'Isi jika ada keluhan atau catatan yang ingin disampaikan.',
+                    style: TextStyle(
+                      color: Colors.grey.shade600,
+                      fontSize: 13.5,
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Colors.grey.shade200,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.035),
+                          blurRadius: 14,
+                          offset: const Offset(0, 7),
+                        ),
+                      ],
+                    ),
+                    child: TextField(
+                      controller: complaintController,
+                      maxLines: 5,
+                      decoration: InputDecoration(
+                        hintText:
+                            'Contoh: pasien merasa pusing, mual, atau ingin konsultasi lanjutan...',
+                        hintStyle: TextStyle(
+                          color: Colors.grey.shade400,
+                          fontSize: 14,
+                          height: 1.4,
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.all(16),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEAF2FF),
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.info_outline_rounded,
+                          color: primaryBlue,
+                          size: 22,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'Datang 10 menit lebih awal untuk konfirmasi data dan nomor antrean.',
+                            style: TextStyle(
+                              color: Colors.grey.shade700,
+                              fontSize: 13.5,
+                              height: 1.4,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ],
@@ -233,210 +660,188 @@ class _ScheduleSettingScreenState extends State<ScheduleSettingScreen> {
                   ),
                 ],
               ),
-              const Divider(height: 32),
-              // Date & Time
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Tanggal', style: TextStyle(color: Colors.grey)),
-                  Text(
-                    _selectedDate.isEmpty ? '12 Feb 2025' : _selectedDate,
-                    style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2F5DAB)),
+            ),
+
+            Container(
+              padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.06),
+                    blurRadius: 18,
+                    offset: const Offset(0, -6),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Waktu', style: TextStyle(color: Colors.grey)),
-                  Text(
-                    _selectedTime.isEmpty ? '10:00 AM' : _selectedTime,
-                    style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2F5DAB)),
-                  ),
-                ],
-              ),
-              const Divider(height: 32),
-              // Keluhan
-              const Text('Ringkasan Keluhan', style: TextStyle(color: Colors.grey)),
-              const SizedBox(height: 8),
-              const Text(
-                'Sering merasa mual dan pusing sejak dua hari yang lalu.',
-                style: TextStyle(fontWeight: FontWeight.w500, color: Colors.black87),
-              ),
-              const SizedBox(height: 40),
-              // Confirm Button
-              SizedBox(
+              child: SizedBox(
                 width: double.infinity,
-                height: 56,
+                height: 54,
                 child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context); // close modal
-                    Navigator.pushNamed(context, '/booking-success');
-                  },
+                  onPressed: selectedTimeIndex == -1
+                      ? null
+                      : () {
+                          _showBookingDetailModal(
+                            name: name,
+                            specialty: specialty,
+                            schedule: schedule,
+                            selectedDateText: selectedDateText,
+                            serviceType: serviceType,
+                          );
+                        },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFF47B20),
+                    backgroundColor: orange,
+                    disabledBackgroundColor: Colors.grey.shade300,
                     foregroundColor: Colors.white,
+                    elevation: 0,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(18),
                     ),
-                    elevation: 4,
                   ),
-                  child: const Text(
-                    'Konfirmasi Booking',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
+                  child: Text(
+                    selectedTimeIndex == -1
+                        ? 'Pilih Waktu Terlebih Dahulu'
+                        : 'Lanjutkan',
+                    style: const TextStyle(
+                      fontSize: 16.5,
+                      fontWeight: FontWeight.w900,
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
-            ],
-          ),
-        );
-      },
+            ),
+          ],
+        ),
+      ),
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF2F5DAB)),
-          onPressed: () => Navigator.pop(context),
+  Widget _buildStepItem(String number, String label, bool active) {
+    return Column(
+      children: [
+        Container(
+          width: 28,
+          height: 28,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: active ? Colors.white : Colors.white.withOpacity(0.25),
+            shape: BoxShape.circle,
+          ),
+          child: Text(
+            number,
+            style: TextStyle(
+              color: active ? const Color(0xFF2F5DAB) : Colors.white,
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
         ),
-        title: const Text(
-          'Atur Jadwal',
+        const SizedBox(height: 6),
+        Text(
+          label,
           style: TextStyle(
-            color: Color(0xFF2F5DAB),
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
+            color: Colors.white.withOpacity(active ? 0.95 : 0.65),
+            fontSize: 11.5,
+            fontWeight: FontWeight.w600,
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildStepLine() {
+    return Expanded(
+      child: Container(
+        height: 1.5,
+        margin: const EdgeInsets.only(bottom: 22, left: 8, right: 8),
+        color: Colors.white.withOpacity(0.35),
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Dropdown
-              const Text('Pilih Dokter / Spesialis', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2F5DAB))),
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    isExpanded: true,
-                    value: 'dr. Yoshinori, Sp. PD',
-                    icon: const Icon(Icons.keyboard_arrow_down, color: Colors.grey),
-                    items: ['dr. Yoshinori, Sp. PD', 'dr. Sarah Wijaya, Sp. A'].map((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value, style: const TextStyle(fontWeight: FontWeight.w500)),
-                      );
-                    }).toList(),
-                    onChanged: (_) {},
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              
-              // Date & Time Picker
-              const Text('Pilih Tanggal & Waktu', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2F5DAB))),
-              const SizedBox(height: 12),
-              GestureDetector(
-                onTap: () => _showDateTimePicker(context),
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.grey.shade200),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.calendar_month, color: Color(0xFFF47B20)),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          _selectedDate.isEmpty ? 'Pilih Jadwal' : '$_selectedDate - $_selectedTime',
-                          style: TextStyle(
-                            color: _selectedDate.isEmpty ? Colors.grey : Colors.black87,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                      const Icon(Icons.chevron_right, color: Colors.grey),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              
-              // Textarea Keluhan
-              const Text('Keluhan / Catatan', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2F5DAB))),
-              const SizedBox(height: 12),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
-                child: TextField(
-                  maxLines: 5,
-                  decoration: InputDecoration(
-                    hintText: 'Tuliskan keluhan atau gejala yang Anda rasakan...',
-                    hintStyle: TextStyle(color: Colors.grey[400]),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.all(16),
-                  ),
-                ),
-              ),
-              
-              const SizedBox(height: 40),
-              
-              // Save Button
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: () => _showBookingDetailModal(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2F5DAB),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    elevation: 4,
-                    shadowColor: const Color(0xFF2F5DAB).withOpacity(0.4),
-                  ),
-                  child: const Text(
-                    'Simpan',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ),
-              ),
-            ],
+    );
+  }
+
+  Widget _buildSummaryRow({
+    required IconData icon,
+    required String title,
+    required String value,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          icon,
+          color: const Color(0xFF2F5DAB),
+          size: 21,
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            title,
+            style: TextStyle(
+              color: Colors.grey.shade600,
+              fontSize: 13.5,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
+        const SizedBox(width: 10),
+        Expanded(
+          flex: 2,
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: const TextStyle(
+              color: Color(0xFF2F5DAB),
+              fontSize: 13.5,
+              fontWeight: FontWeight.w800,
+              height: 1.35,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildModalInfoRow({
+    required IconData icon,
+    required String title,
+    required String value,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 13),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            icon,
+            color: const Color(0xFF2F5DAB),
+            size: 21,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              title,
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontSize: 13.5,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            flex: 2,
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              style: const TextStyle(
+                color: Color(0xFF2F5DAB),
+                fontSize: 13.5,
+                fontWeight: FontWeight.w800,
+                height: 1.35,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

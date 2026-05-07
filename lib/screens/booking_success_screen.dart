@@ -5,57 +5,88 @@ class BookingSuccessScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const Color primaryBlue = Color(0xFF2F5DAB);
+    const Color orange = Color(0xFFF47B20);
+
+    final args =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+
+    final String bookingNumber = args?['bookingNumber'] ?? 'BK-120225-001';
+    final String name = args?['name'] ?? 'Dokter';
+    final String specialty = args?['specialty'] ?? 'Layanan kesehatan';
+    final String selectedDateText = args?['selectedDateText'] ?? '-';
+    final String selectedTime = args?['selectedTime'] ?? '-';
+    final String serviceType = args?['serviceType'] ?? 'Dokter';
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF5F7FA),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Spacer(),
-              // Green Check Icon
+
               Container(
-                width: 120,
-                height: 120,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFE8F5E9), // Light green background
+                width: 118,
+                height: 118,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE8F5E9),
                   shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.green.withOpacity(0.18),
+                      blurRadius: 24,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
                 ),
                 child: const Icon(
-                  Icons.check_circle,
-                  color: Colors.green, // Standard success green
-                  size: 80,
+                  Icons.check_circle_rounded,
+                  color: Colors.green,
+                  size: 82,
                 ),
               ),
-              const SizedBox(height: 40),
+
+              const SizedBox(height: 32),
+
               const Text(
                 'Booking Berhasil!',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF2F5DAB),
-                  letterSpacing: 0.5,
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Janji temu Anda telah berhasil dibuat. Silakan datang tepat waktu.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey,
+                  color: primaryBlue,
+                  fontSize: 28,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              Text(
+                'Janji temu Anda sudah berhasil dibuat. Silakan datang sesuai jadwal yang dipilih.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.grey.shade600,
+                  fontSize: 15,
                   height: 1.5,
                 ),
               ),
-              const SizedBox(height: 40),
-              // Booking Number Box
+
+              const SizedBox(height: 28),
+
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                width: double.infinity,
+                padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF5F7FA),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.grey.shade200),
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 18,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
                 ),
                 child: Column(
                   children: [
@@ -64,81 +95,132 @@ class BookingSuccessScreen extends StatelessWidget {
                       style: TextStyle(
                         color: Colors.grey,
                         fontSize: 14,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
+
                     const SizedBox(height: 8),
-                    const Text(
-                      'BK-120225-001',
-                      style: TextStyle(
+
+                    Text(
+                      bookingNumber,
+                      style: const TextStyle(
+                        color: primaryBlue,
                         fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF2F5DAB),
-                        letterSpacing: 1.5,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.2,
                       ),
                     ),
+
+                    const Divider(height: 30),
+
+                    _buildDetailRow('Layanan', serviceType),
+                    const SizedBox(height: 10),
+                    _buildDetailRow('Pilihan', name),
+                    const SizedBox(height: 10),
+                    _buildDetailRow('Keterangan', specialty),
+                    const SizedBox(height: 10),
+                    _buildDetailRow('Tanggal', selectedDateText),
+                    const SizedBox(height: 10),
+                    _buildDetailRow('Waktu', selectedTime),
                   ],
                 ),
               ),
+
               const Spacer(),
-              // View Details Button
+
               SizedBox(
                 width: double.infinity,
-                height: 56,
+                height: 54,
                 child: ElevatedButton(
                   onPressed: () {
                     Navigator.pushReplacementNamed(context, '/visit-history');
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFF47B20),
+                    backgroundColor: orange,
                     foregroundColor: Colors.white,
+                    elevation: 0,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(18),
                     ),
-                    elevation: 4,
-                    shadowColor: const Color(0xFFF47B20).withOpacity(0.4),
                   ),
                   child: const Text(
-                    'Lihat Detail',
+                    'Lihat Detail Kunjungan',
                     style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
+                      fontSize: 16.5,
+                      fontWeight: FontWeight.w900,
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
-              // Back Button
+
+              const SizedBox(height: 14),
+
               SizedBox(
                 width: double.infinity,
-                height: 56,
+                height: 54,
                 child: OutlinedButton(
                   onPressed: () {
-                    Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+                    Navigator.pushNamedAndRemoveUntil(
+                      context,
+                      '/home',
+                      (route) => false,
+                    );
                   },
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF2F5DAB),
-                    side: const BorderSide(color: Color(0xFF2F5DAB), width: 2),
+                    foregroundColor: primaryBlue,
+                    side: const BorderSide(
+                      color: primaryBlue,
+                      width: 1.5,
+                    ),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(18),
                     ),
                   ),
                   child: const Text(
-                    'Kembali',
+                    'Kembali ke Beranda',
                     style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
+                      fontSize: 16.5,
+                      fontWeight: FontWeight.w900,
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  static Widget _buildDetailRow(String title, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Text(
+            title,
+            style: TextStyle(
+              color: Colors.grey.shade600,
+              fontSize: 13.5,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          flex: 2,
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: const TextStyle(
+              color: Color(0xFF2F5DAB),
+              fontSize: 13.5,
+              fontWeight: FontWeight.w800,
+              height: 1.35,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
