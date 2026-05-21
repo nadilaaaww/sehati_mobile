@@ -15,7 +15,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   static const Color primaryBlue = Color(0xFF2F5DAB);
   static const Color darkBlue = Color(0xFF244E97);
   static const Color orange = Color(0xFFF47B20);
-  static const Color softBlue = Color(0xFFEAF1FF);
+  // static const Color softBlue = Color(0xFFEAF1FF);
   static const Color textGrey = Color(0xFF6B7280);
   static const Color darkText = Color(0xFF1F2937);
 

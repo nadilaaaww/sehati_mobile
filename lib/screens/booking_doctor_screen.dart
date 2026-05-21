@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+// Impor service doctor hasil Fase 2
+import 'package:sehati_mobile/services/doctor_service.dart';
+
+const Color greyText = Color(0xFF757575);
 
 class BookingDoctorScreen extends StatefulWidget {
   const BookingDoctorScreen({super.key});
@@ -12,6 +16,8 @@ class _BookingDoctorScreenState extends State<BookingDoctorScreen> {
   int selectedDateIndex = 0;
 
   late final List<DateTime> dates;
+  // State untuk menampung Future list dokter aktif
+  late Future<List<dynamic>> _doctorsFuture;
 
   @override
   void initState() {
@@ -22,38 +28,35 @@ class _BookingDoctorScreenState extends State<BookingDoctorScreen> {
       365,
       (index) => DateTime.now().add(Duration(days: index)),
     );
+
+    // Muat data dokter perdana saat halaman dibuka
+    _fetchDoctorsData();
+  }
+
+  // Fungsi sentral untuk memicu penarikan data dokter berdasarkan filter UI
+  void _fetchDoctorsData() {
+    String layananType = isDokterSelected ? 'dokter' : 'khitan';
+    DateTime selectedDate = dates[selectedDateIndex];
+    
+    // Format tanggal menjadi YYYY-MM-DD sesuai standar query database Laravel
+    String formattedDate = 
+        "${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}";
+
+    setState(() {
+        _doctorsFuture = DoctorService().fetchDoctors(
+        layanan: layananType,
+        tanggal: formattedDate,
+      );
+    });
   }
 
   String getDayName(DateTime date) {
-    const days = [
-      'Sen',
-      'Sel',
-      'Rab',
-      'Kam',
-      'Jum',
-      'Sab',
-      'Min',
-    ];
-
+    const days = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
     return days[date.weekday - 1];
   }
 
   String getMonthName(DateTime date) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'Mei',
-      'Jun',
-      'Jul',
-      'Agu',
-      'Sep',
-      'Okt',
-      'Nov',
-      'Des',
-    ];
-
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
     return months[date.month - 1];
   }
 
@@ -74,7 +77,7 @@ class _BookingDoctorScreenState extends State<BookingDoctorScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Header
+            // HEADER AREA
             Container(
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
@@ -117,9 +120,7 @@ class _BookingDoctorScreenState extends State<BookingDoctorScreen> {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 22),
-
                   const Text(
                     'Pilih layanan kesehatan sesuai kebutuhan Anda',
                     style: TextStyle(
@@ -129,9 +130,7 @@ class _BookingDoctorScreenState extends State<BookingDoctorScreen> {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-
                   const SizedBox(height: 6),
-
                   Text(
                     'Tentukan jenis layanan, tanggal kunjungan, lalu pilih jadwal yang tersedia.',
                     style: TextStyle(
@@ -140,9 +139,7 @@ class _BookingDoctorScreenState extends State<BookingDoctorScreen> {
                       height: 1.4,
                     ),
                   ),
-
                   const SizedBox(height: 20),
-
                   Row(
                     children: [
                       _buildStepItem('1', 'Layanan', true),
@@ -156,11 +153,12 @@ class _BookingDoctorScreenState extends State<BookingDoctorScreen> {
               ),
             ),
 
+            // FORM AREA & CALENDAR
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
                 children: [
-                  // Toggle layanan
+                  // Toggle layanan (Dokter / Khitan)
                   Container(
                     padding: const EdgeInsets.all(5),
                     decoration: BoxDecoration(
@@ -181,9 +179,12 @@ class _BookingDoctorScreenState extends State<BookingDoctorScreen> {
                           icon: Icons.medical_services_rounded,
                           selected: isDokterSelected,
                           onTap: () {
-                            setState(() {
-                              isDokterSelected = true;
-                            });
+                            if (!isDokterSelected) {
+                              setState(() {
+                                isDokterSelected = true;
+                              });
+                              _fetchDoctorsData(); // Refresh API
+                            }
                           },
                         ),
                         _buildServiceTab(
@@ -191,9 +192,12 @@ class _BookingDoctorScreenState extends State<BookingDoctorScreen> {
                           icon: Icons.health_and_safety_rounded,
                           selected: !isDokterSelected,
                           onTap: () {
-                            setState(() {
-                              isDokterSelected = false;
-                            });
+                            if (isDokterSelected) {
+                              setState(() {
+                                isDokterSelected = false;
+                              });
+                              _fetchDoctorsData(); // Refresh API
+                            }
                           },
                         ),
                       ],
@@ -226,7 +230,7 @@ class _BookingDoctorScreenState extends State<BookingDoctorScreen> {
 
                   const SizedBox(height: 12),
 
-                  // Calendar otomatis
+                  // Calendar horizontal otomatis
                   SizedBox(
                     height: 98,
                     child: ListView.builder(
@@ -242,6 +246,7 @@ class _BookingDoctorScreenState extends State<BookingDoctorScreen> {
                             setState(() {
                               selectedDateIndex = index;
                             });
+                            _fetchDoctorsData(); // Ambil data baru berdasarkan tanggal yang diklik
                           },
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 220),
@@ -273,49 +278,36 @@ class _BookingDoctorScreenState extends State<BookingDoctorScreen> {
                                 Text(
                                   getDayName(date),
                                   style: TextStyle(
-                                    color: isSelected
-                                        ? Colors.white
-                                        : Colors.grey.shade500,
+                                    color: isSelected ? Colors.white : Colors.grey.shade500,
                                     fontSize: 13,
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
-
                                 const SizedBox(height: 7),
-
                                 Text(
                                   '${date.day}',
                                   style: TextStyle(
-                                    color: isSelected
-                                        ? Colors.white
-                                        : primaryBlue,
+                                    color: isSelected ? Colors.white : primaryBlue,
                                     fontSize: 22,
                                     fontWeight: FontWeight.w900,
                                   ),
                                 ),
-
                                 const SizedBox(height: 4),
-
                                 Text(
                                   getMonthName(date),
                                   style: TextStyle(
-                                    color: isSelected
-                                        ? Colors.white.withOpacity(0.9)
-                                        : Colors.grey.shade500,
+                                    color: isSelected ? Colors.white.withOpacity(0.9) : Colors.grey.shade500,
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
-
                                 if (isToday) ...[
                                   const SizedBox(height: 4),
                                   Container(
                                     width: 28,
                                     height: 4,
                                     decoration: BoxDecoration(
-                                      color: isSelected
-                                          ? Colors.white
-                                          : primaryBlue,
+                                      color: isSelected ? Colors.white : primaryBlue,
                                       borderRadius: BorderRadius.circular(20),
                                     ),
                                   ),
@@ -361,35 +353,16 @@ class _BookingDoctorScreenState extends State<BookingDoctorScreen> {
 
                   const SizedBox(height: 24),
 
+                  // CONTAINER JUDUL & WIDGET FUTUREBUILDER DOKTER LIVE
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        isDokterSelected
-                            ? 'Dokter Tersedia'
-                            : 'Layanan Khitan Tersedia',
+                        isDokterSelected ? 'Dokter Tersedia' : 'Layanan Khitan Tersedia',
                         style: const TextStyle(
                           color: primaryBlue,
                           fontSize: 17,
                           fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFEAF2FF),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          isDokterSelected ? '2 dokter' : '1 layanan',
-                          style: const TextStyle(
-                            color: primaryBlue,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                          ),
                         ),
                       ),
                     ],
@@ -397,40 +370,69 @@ class _BookingDoctorScreenState extends State<BookingDoctorScreen> {
 
                   const SizedBox(height: 14),
 
-                  if (isDokterSelected) ...[
-                    _buildDoctorCard(
-                      context,
-                      name: 'dr. Yoshinori, Sp. PD',
-                      specialty: 'Spesialis Penyakit Dalam',
-                      schedule: '08.00 - 12.00 WIB',
-                      rating: '4.8',
-                      queue: 'Estimasi antrean 5 pasien',
-                      icon: Icons.person_rounded,
-                      selectedDate: selectedDate,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildDoctorCard(
-                      context,
-                      name: 'dr. Sarah Wijaya, Sp. A',
-                      specialty: 'Spesialis Anak',
-                      schedule: '13.00 - 16.00 WIB',
-                      rating: '4.9',
-                      queue: 'Estimasi antrean 3 pasien',
-                      icon: Icons.person_2_rounded,
-                      selectedDate: selectedDate,
-                    ),
-                  ] else ...[
-                    _buildDoctorCard(
-                      context,
-                      name: 'Layanan Khitan Anak',
-                      specialty: 'Ditangani oleh tenaga medis berpengalaman',
-                      schedule: '09.00 - 14.00 WIB',
-                      rating: '4.7',
-                      queue: 'Estimasi antrean 2 pasien',
-                      icon: Icons.health_and_safety_rounded,
-                      selectedDate: selectedDate,
-                    ),
-                  ],
+                  // IMPLEMENTASI FUTUREBUILDER KHUSUS AREA LIST KARTU DOKTER
+                  FutureBuilder<List<dynamic>>(
+                    future: _doctorsFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 40),
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              color: primaryBlue,
+                              strokeWidth: 3,
+                            ),
+                          ),
+                        );
+                      }
+
+                      if (snapshot.hasError) {
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 20),
+                            child: Text(
+                              'Gagal mengambil jadwal: ${snapshot.error}',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(color: Colors.redAccent, fontSize: 13),
+                            ),
+                          ),
+                        );
+                      }
+
+                      final doctorsList = snapshot.data ?? [];
+
+                      if (doctorsList.isEmpty) {
+                        return Center(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(vertical: 40),
+                            child: Text(
+                              'Tidak ada jadwal klinik tersedia pada tanggal ini.',
+                              style: TextStyle(color: greyText, fontSize: 14, fontWeight: FontWeight.w500),
+                            ),
+                          ),
+                        );
+                      }
+
+                      return Column(
+                        children: doctorsList.map((dokter) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: _buildDoctorCard(
+                              context,
+                              id: dokter['id']?.toString() ?? '0', // Amankan ID untuk Payload POST Booking nanti
+                              name: dokter['nama'] ?? 'Tenaga Medis',
+                              specialty: dokter['spesialis'] ?? 'Klinik Umum',
+                              schedule: dokter['jam_praktik'] ?? '08.00 - 12.00 WIB',
+                              rating: (dokter['rating'] ?? 4.8).toString(),
+                              queue: 'Estimasi antrean ${dokter['estimasi_antrean'] ?? 0} pasien',
+                              icon: isDokterSelected ? Icons.person_rounded : Icons.health_and_safety_rounded,
+                              selectedDate: selectedDate,
+                            ),
+                          );
+                        }).toList(),
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
@@ -525,6 +527,7 @@ class _BookingDoctorScreenState extends State<BookingDoctorScreen> {
 
   Widget _buildDoctorCard(
     BuildContext context, {
+    required String id,
     required String name,
     required String specialty,
     required String schedule,
@@ -569,9 +572,7 @@ class _BookingDoctorScreenState extends State<BookingDoctorScreen> {
                   size: 36,
                 ),
               ),
-
               const SizedBox(width: 14),
-
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -600,7 +601,6 @@ class _BookingDoctorScreenState extends State<BookingDoctorScreen> {
                   ],
                 ),
               ),
-
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 8,
@@ -631,9 +631,7 @@ class _BookingDoctorScreenState extends State<BookingDoctorScreen> {
               ),
             ],
           ),
-
           const SizedBox(height: 16),
-
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
@@ -656,9 +654,7 @@ class _BookingDoctorScreenState extends State<BookingDoctorScreen> {
               ],
             ),
           ),
-
           const SizedBox(height: 16),
-
           SizedBox(
             width: double.infinity,
             height: 50,
@@ -668,6 +664,7 @@ class _BookingDoctorScreenState extends State<BookingDoctorScreen> {
                   context,
                   '/schedule-setting',
                   arguments: {
+                    'id': id, // Mengirimkan ID Dokter asli untuk kebutuhan API riil kelompokmu
                     'name': name,
                     'specialty': specialty,
                     'schedule': schedule,

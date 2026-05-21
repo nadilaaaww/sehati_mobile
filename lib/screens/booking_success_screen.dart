@@ -8,12 +8,12 @@ class BookingSuccessScreen extends StatelessWidget {
     const Color primaryBlue = Color(0xFF2F5DAB);
     const Color orange = Color(0xFFF47B20);
 
-    final args =
-        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    // MENANGKAP PAYLOAD LIVE DARI DATABASE VPS HASIL EKSEKUSI FASE 3
+    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
 
-    final String bookingNumber = args?['bookingNumber'] ?? 'BK-120225-001';
-    final String name = args?['name'] ?? 'Dokter';
-    final String specialty = args?['specialty'] ?? 'Layanan kesehatan';
+    final String bookingNumber = args?['bookingNumber'] ?? 'BK-RESERVED';
+    final String name = args?['name'] ?? 'Tenaga Medis';
+    final String specialty = args?['specialty'] ?? 'Layanan Kesehatan';
     final String selectedDateText = args?['selectedDateText'] ?? '-';
     final String selectedTime = args?['selectedTime'] ?? '-';
     final String serviceType = args?['serviceType'] ?? 'Dokter';
@@ -25,109 +25,120 @@ class BookingSuccessScreen extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
           child: Column(
             children: [
-              const Spacer(),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 20),
 
-              Container(
-                width: 118,
-                height: 118,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE8F5E9),
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.green.withOpacity(0.18),
-                      blurRadius: 24,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.check_circle_rounded,
-                  color: Colors.green,
-                  size: 82,
-                ),
-              ),
-
-              const SizedBox(height: 32),
-
-              const Text(
-                'Booking Berhasil!',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: primaryBlue,
-                  fontSize: 28,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-
-              const SizedBox(height: 10),
-
-              Text(
-                'Janji temu Anda sudah berhasil dibuat. Silakan datang sesuai jadwal yang dipilih.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.grey.shade600,
-                  fontSize: 15,
-                  height: 1.5,
-                ),
-              ),
-
-              const SizedBox(height: 28),
-
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 18,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    const Text(
-                      'Nomor Booking',
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
+                      // ANIMASI/IKON BERHASIL
+                      Container(
+                        width: 118,
+                        height: 118,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE8F5E9),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.green.withOpacity(0.18),
+                              blurRadius: 24,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.check_circle_rounded,
+                          color: Colors.green,
+                          size: 82,
+                        ),
                       ),
-                    ),
 
-                    const SizedBox(height: 8),
+                      const SizedBox(height: 32),
 
-                    Text(
-                      bookingNumber,
-                      style: const TextStyle(
-                        color: primaryBlue,
-                        fontSize: 22,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1.2,
+                      const Text(
+                        'Booking Berhasil!',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: primaryBlue,
+                          fontSize: 28,
+                          fontWeight: FontWeight.w900,
+                        ),
                       ),
-                    ),
 
-                    const Divider(height: 30),
+                      const SizedBox(height: 10),
 
-                    _buildDetailRow('Layanan', serviceType),
-                    const SizedBox(height: 10),
-                    _buildDetailRow('Pilihan', name),
-                    const SizedBox(height: 10),
-                    _buildDetailRow('Keterangan', specialty),
-                    const SizedBox(height: 10),
-                    _buildDetailRow('Tanggal', selectedDateText),
-                    const SizedBox(height: 10),
-                    _buildDetailRow('Waktu', selectedTime),
-                  ],
+                      Text(
+                        'Janji temu Anda sudah berhasil dibuat. Silakan datang sesuai jadwal yang dipilih.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontSize: 15,
+                          height: 1.5,
+                        ),
+                      ),
+
+                      const SizedBox(height: 28),
+
+                      // NOTA TIKET ELEKTRONIK DINAMIS
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(18),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(24),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 18,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            const Text(
+                              'Nomor Booking',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+
+                            const SizedBox(height: 8),
+
+                            Text(
+                              bookingNumber, // Menampilkan nomor antrean asli hasil generate sistem Laravel VPS
+                              style: const TextStyle(
+                                color: primaryBlue,
+                                fontSize: 22,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+
+                            const Divider(height: 30),
+
+                            _buildDetailRow('Layanan', serviceType),
+                            const SizedBox(height: 10),
+                            _buildDetailRow('Pilihan', name),
+                            const SizedBox(height: 10),
+                            _buildDetailRow('Keterangan', specialty),
+                            const SizedBox(height: 10),
+                            _buildDetailRow('Tanggal', selectedDateText),
+                            const SizedBox(height: 10),
+                            _buildDetailRow('Waktu', selectedTime),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 28),
+                    ],
+                  ),
                 ),
               ),
 
-              const Spacer(),
-
+              // PENGAMAN ALUR NAVIGASI AGAR TIDAK BISA DI-BACK MANUAL OLEH USER
               SizedBox(
                 width: double.infinity,
                 height: 54,

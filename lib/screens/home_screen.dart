@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+// Impor service dashboard hasil Fase 2
+import 'package:sehati_mobile/services/dashboard_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -9,6 +11,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
+  // State untuk menampung Future data dashboard agar tidak re-fetch saat setState dipicu
+  late Future<Map<String, dynamic>> _dashboardData;
 
   static const Color primaryBlue = Color(0xFF2F5DAB);
   static const Color orange = Color(0xFFF47B20);
@@ -19,6 +23,20 @@ class _HomeScreenState extends State<HomeScreen> {
   static const Color greyText = Color(0xFF6B7280);
   static const Color green = Color(0xFF2E7D32);
   static const Color chatGreen = Color(0xFF20D34A);
+
+  @override
+  void initState() {
+    super.initState();
+    // Mengunci instansiasi fetch data saat halaman pertama kali dibangun
+    _dashboardData = DashboardService().getDashboardData();
+  }
+
+  // Fungsi refresh data jika diperlukan pasca-booking sukses atau aksi lainnya
+  void _refreshDashboard() {
+    setState(() {
+      _dashboardData = DashboardService().getDashboardData();
+    });
+  }
 
   void _showQueueDetail({
     required String queueNumber,
@@ -608,7 +626,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     if (index == 0) {
-      Navigator.pushReplacementNamed(context, '/home');
+      // Tetap di halaman home
     } else if (index == 1) {
       Navigator.pushNamed(context, '/booking-doctor');
     } else if (index == 2) {
@@ -618,321 +636,343 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  // INTEGRASI FUTUREBUILDER DI AREA UTAMA ENGINE BODY
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: softBg,
-
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(22, 20, 22, 28),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header pasien
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Selamat datang,',
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: greyText,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        SizedBox(height: 5),
-                        Text(
-                          'Stella Kim',
-                          style: TextStyle(
-                            fontSize: 25,
-                            fontWeight: FontWeight.w900,
-                            color: primaryBlue,
-                          ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          'Semoga sehat selalu hari ini',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: greyText,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Row(
-                    children: [
-                      _buildNotificationButton(),
-                      const SizedBox(width: 10),
-                      _buildProfileButton(),
-                    ],
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 26),
-
-              // Banner utama
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(22),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      primaryBlue,
-                      Color(0xFF4F7ED9),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(28),
-                  boxShadow: [
-                    BoxShadow(
-                      color: primaryBlue.withOpacity(0.22),
-                      blurRadius: 22,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
+        child: FutureBuilder<Map<String, dynamic>>(
+          future: _dashboardData,
+          builder: (context, snapshot) {
+            // 1. STATE WAITING / LOADING
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: CircularProgressIndicator(
+                  color: primaryBlue,
+                  strokeWidth: 3,
                 ),
-                child: Row(
+              );
+            }
+
+            // 2. STATE ERROR / JARINGAN TERPUTUS
+            if (snapshot.hasError) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.wifi_off_rounded, size: 64, color: greyText),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Gagal memuat data dari server kelompok.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: darkText, fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
+                      const SizedBox(height: 8),
+                      Text('${snapshot.error}', textAlign: TextAlign.center, style: const TextStyle(color: greyText, fontSize: 12)),
+                      const SizedBox(height: 18),
+                      ElevatedButton(
+                        onPressed: _refreshDashboard,
+                        style: ElevatedButton.styleFrom(backgroundColor: primaryBlue),
+                        child: const Text('Coba Lagi', style: TextStyle(color: Colors.white)),
+                      )
+                    ],
+                  ),
+                ),
+              );
+            }
+
+            // Ekstraksi payload JSON riil dari API Laravel VPS kelompokmu
+            final data = snapshot.data?['data'] ?? {};
+            final pasien = data['pasien'] ?? {};
+            final ringkasan = data['ringkasan'] ?? {};
+            final listKunjungan = data['visits'] as List? ?? [];
+            final listObat = data['medicines'] as List? ?? [];
+
+            // 3. STATE BERHASIL (RENDER DATA DINAMIS)
+            return RefreshIndicator(
+              onRefresh: () async => _refreshDashboard(),
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(22, 20, 22, 28),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 7,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.18),
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            child: const Text(
-                              'Pasien Aktif',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          const Text(
-                            'Pantau jadwal kunjungan dan obat dari Klinik Sehati.',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                              height: 1.35,
-                            ),
-                          ),
-                          const SizedBox(height: 14),
-                          const Row(
+                    // Header pasien dinamis
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Icon(
-                                Icons.calendar_today_rounded,
-                                color: Colors.white,
-                                size: 16,
-                              ),
-                              SizedBox(width: 8),
-                              Text(
-                                'Hari ini, 12 Okt 2026',
+                              const Text(
+                                'Selamat datang,',
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  fontSize: 15,
+                                  color: greyText,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 5),
+                              Text(
+                                pasien['nama'] ?? 'Pasien Sehati', // Mengganti Stella Kim statis
+                                style: const TextStyle(
+                                  fontSize: 25,
+                                  fontWeight: FontWeight.w900,
+                                  color: primaryBlue,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              const Text(
+                                'Semoga sehat selalu hari ini',
+                                style: TextStyle(
                                   fontSize: 13,
-                                  fontWeight: FontWeight.w600,
+                                  color: greyText,
                                 ),
                               ),
                             ],
                           ),
+                        ),
+                        Row(
+                          children: [
+                            _buildNotificationButton(),
+                            const SizedBox(width: 10),
+                            _buildProfileButton(),
+                          ],
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 26),
+
+                    // Banner utama dinamis
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(22),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            primaryBlue,
+                            Color(0xFF4F7ED9),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(28),
+                        boxShadow: [
+                          BoxShadow(
+                            color: primaryBlue.withOpacity(0.22),
+                            blurRadius: 22,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 7,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.18),
+                                    borderRadius: BorderRadius.circular(30),
+                                  ),
+                                  child: const Text(
+                                    'Pasien Aktif',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                const Text(
+                                  'Pantau jadwal kunjungan dan obat dari Klinik Sehati.',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w800,
+                                    height: 1.35,
+                                  ),
+                                ),
+                                const SizedBox(height: 14),
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.calendar_today_rounded,
+                                      color: Colors.white,
+                                      size: 16,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      // Render tanggal waktu riil dari data kalender backend kelompok30
+                                      data['tanggal_hari_ini'] ?? 'Hari ini', 
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Container(
+                            width: 78,
+                            height: 78,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.18),
+                              borderRadius: BorderRadius.circular(26),
+                            ),
+                            child: const Icon(
+                              Icons.health_and_safety_rounded,
+                              color: Colors.white,
+                              size: 42,
+                            ),
+                          ),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 14),
-                    Container(
-                      width: 78,
-                      height: 78,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.18),
-                        borderRadius: BorderRadius.circular(26),
-                      ),
-                      child: const Icon(
-                        Icons.health_and_safety_rounded,
-                        color: Colors.white,
-                        size: 42,
+
+                    const SizedBox(height: 26),
+
+                    // Menu ringkas hitungan angka dari API backend kelompokmu
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildMiniCard(
+                            title: 'Kunjungan',
+                            value: ringkasan['total_jadwal_kunjungan'] ?? '0 Jadwal',
+                            icon: Icons.local_hospital_rounded,
+                            color: primaryBlue,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: _buildMiniCard(
+                            title: 'Obat',
+                            value: ringkasan['total_jadwal_obat'] ?? '0 Jadwal',
+                            icon: Icons.medication_rounded,
+                            color: orange,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 28),
+
+                    const Text(
+                      'Jadwal Kunjungan',
+                      style: TextStyle(
+                        fontSize: 19,
+                        fontWeight: FontWeight.w900,
+                        color: darkText,
                       ),
                     ),
+
+                    const SizedBox(height: 14),
+
+                    // ITERASI KUNJUNGAN PASIEN SECARA DINAMIS (Anti Tersangkut Nested ListView Bug)
+                    if (listKunjungan.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 16),
+                        child: Text('Tidak ada jadwal kunjungan aktif.', style: TextStyle(color: greyText, fontSize: 14)),
+                      )
+                    else
+                      ...listKunjungan.map((visit) => Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: _buildVisitCard(
+                              dateLabel: visit['date_label'] ?? '',
+                              poli: visit['poli'] ?? 'Poli Klinik',
+                              doctor: visit['doctor'] ?? 'Tenaga Medis',
+                              time: visit['time'] ?? '00:00',
+                              queueNumber: visit['queue_number'] ?? '-',
+                              status: visit['status'] ?? 'Terjadwal',
+                              isToday: visit['is_today'] ?? false,
+                            ),
+                          )),
+
+                    const SizedBox(height: 16),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Jadwal Obat Hari Ini',
+                          style: TextStyle(
+                            fontSize: 19,
+                            fontWeight: FontWeight.w900,
+                            color: darkText,
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 7,
+                          ),
+                          decoration: BoxDecoration(
+                            color: softOrange,
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          child: const Text(
+                            'Dari Klinik',
+                            style: TextStyle(
+                              color: orange,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    // ITERASI ALARM OBAT SECARA DINAMIS
+                    if (listObat.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 16),
+                        child: Text('Tidak ada jadwal konsumsi obat hari ini.', style: TextStyle(color: greyText, fontSize: 14)),
+                      )
+                    else
+                      ...listObat.map((obat) => Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: _buildAlarmCard(
+                              time: obat['time'] ?? '00:00',
+                              medicineName: obat['medicine_name'] ?? 'Nama Obat',
+                              instruction: obat['instruction'] ?? 'Aturan Minum',
+                              status: obat['status'] ?? 'Belum diverifikasi',
+                              icon: obat['type'] == 'liquid' ? Icons.medication_liquid_rounded : Icons.medication_rounded,
+                              onTap: () {
+                                _showMedicineDetail(
+                                  time: obat['time'] ?? '00:00',
+                                  medicineName: obat['medicine_name'] ?? 'Nama Obat',
+                                  dose: obat['dose'] ?? '1 tablet',
+                                  instruction: obat['instruction'] ?? 'Setelah Makan',
+                                  status: obat['status'] ?? 'Belum diverifikasi',
+                                  description: obat['description'] ?? 'Detail obat resep dari rekam medis Klinik Sehati Jember.',
+                                );
+                              },
+                            ),
+                          )),
+
+                    const SizedBox(height: 80),
                   ],
                 ),
               ),
-
-              const SizedBox(height: 26),
-
-              // Menu ringkas
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildMiniCard(
-                      title: 'Kunjungan',
-                      value: '2 Jadwal',
-                      icon: Icons.local_hospital_rounded,
-                      color: primaryBlue,
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: _buildMiniCard(
-                      title: 'Obat',
-                      value: '3 Jadwal',
-                      icon: Icons.medication_rounded,
-                      color: orange,
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 28),
-
-              const Text(
-                'Jadwal Kunjungan',
-                style: TextStyle(
-                  fontSize: 19,
-                  fontWeight: FontWeight.w900,
-                  color: darkText,
-                ),
-              ),
-
-              const SizedBox(height: 14),
-
-              _buildVisitCard(
-                dateLabel: 'Hari ini, 12 Okt 2026',
-                poli: 'Poli Umum',
-                doctor: 'dr. Yoshinori, Sp. PD',
-                time: '10:00',
-                queueNumber: 'A-024',
-                status: 'Status: Menunggu Panggilan',
-                isToday: true,
-              ),
-
-              const SizedBox(height: 12),
-
-              _buildVisitCard(
-                dateLabel: 'Rabu, 14 Okt 2026',
-                poli: 'Poli Gizi',
-                doctor: 'dr. Aisyah Putri',
-                time: '09:30',
-                queueNumber: '-',
-                status: 'Status: Terjadwal',
-                isToday: false,
-              ),
-
-              const SizedBox(height: 28),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Jadwal Obat Hari Ini',
-                    style: TextStyle(
-                      fontSize: 19,
-                      fontWeight: FontWeight.w900,
-                      color: darkText,
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 7,
-                    ),
-                    decoration: BoxDecoration(
-                      color: softOrange,
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    child: const Text(
-                      'Dari Klinik',
-                      style: TextStyle(
-                        color: orange,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 10),
-
-              _buildAlarmCard(
-                time: '07:00',
-                medicineName: 'Paracetamol 500 mg',
-                instruction: 'Setelah sarapan',
-                status: 'Belum diverifikasi',
-                icon: Icons.medication_rounded,
-                onTap: () {
-                  _showMedicineDetail(
-                    time: '07:00',
-                    medicineName: 'Paracetamol 500 mg',
-                    dose: '1 tablet',
-                    instruction: 'Diminum setelah sarapan',
-                    status: 'Belum diverifikasi',
-                    description:
-                        'Obat ini digunakan untuk membantu meredakan demam atau nyeri ringan. Pastikan obat diminum sesuai jadwal yang diberikan oleh Klinik Sehati.',
-                  );
-                },
-              ),
-
-              const SizedBox(height: 12),
-
-              _buildAlarmCard(
-                time: '12:30',
-                medicineName: 'Amoxicillin 250 mg',
-                instruction: 'Setelah makan siang',
-                status: 'Belum diverifikasi',
-                icon: Icons.medication_liquid_rounded,
-                onTap: () {
-                  _showMedicineDetail(
-                    time: '12:30',
-                    medicineName: 'Amoxicillin 250 mg',
-                    dose: '1 kapsul',
-                    instruction: 'Diminum setelah makan siang',
-                    status: 'Belum diverifikasi',
-                    description:
-                        'Obat ini diberikan sesuai anjuran dokter. Minum obat secara teratur dan jangan menghentikan penggunaan tanpa arahan dari tenaga kesehatan.',
-                  );
-                },
-              ),
-
-              const SizedBox(height: 12),
-
-              _buildAlarmCard(
-                time: '19:00',
-                medicineName: 'Vitamin B Complex',
-                instruction: 'Setelah makan malam',
-                status: 'Menunggu jadwal',
-                icon: Icons.local_pharmacy_rounded,
-                onTap: () {
-                  _showMedicineDetail(
-                    time: '19:00',
-                    medicineName: 'Vitamin B Complex',
-                    dose: '1 tablet',
-                    instruction: 'Diminum setelah makan malam',
-                    status: 'Menunggu jadwal',
-                    description:
-                        'Vitamin ini digunakan untuk membantu menjaga daya tahan tubuh dan mendukung proses pemulihan pasien.',
-                  );
-                },
-              ),
-
-              const SizedBox(height: 80),
-            ],
-          ),
+            );
+          },
         ),
       ),
 

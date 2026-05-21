@@ -55,134 +55,142 @@ class SplashScreen extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
               child: Column(
                 children: [
-                  const Spacer(),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 20),
 
-                  // Animasi utama
-                  SizedBox(
-                    width: 360,
-                    height: 300,
-                    child: Lottie.asset(
-                      'assets/hospital_preloaded.json',
-                      fit: BoxFit.contain,
-                      repeat: true,
-                      animate: true,
-                    ),
-                  ),
-
-                  const SizedBox(height: 2),
-
-                  // Nama aplikasi
-                  const Text(
-                    'SEHATI',
-                    style: TextStyle(
-                      fontSize: 42,
-                      fontWeight: FontWeight.w900,
-                      color: primaryBlue,
-                      letterSpacing: 3,
-                    ),
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  // Tagline
-                  const Text(
-                    'Sahabat Digital untuk\nKesehatan Anda',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: textGrey,
-                      fontWeight: FontWeight.w500,
-                      height: 1.4,
-                    ),
-                  ),
-
-                  const SizedBox(height: 18),
-
-                  // Badge kecil
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: softBlue,
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.verified_rounded,
-                          size: 17,
-                          color: primaryBlue,
-                        ),
-                        SizedBox(width: 6),
-                        Text(
-                          'Layanan Klinik Lebih Mudah',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: primaryBlue,
-                            fontWeight: FontWeight.w700,
+                          // Animasi utama
+                          SizedBox(
+                            width: 360,
+                            height: 300,
+                            child: Lottie.asset(
+                              'assets/hospital_preloaded.json',
+                              fit: BoxFit.contain,
+                              repeat: true,
+                              animate: true,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
 
-                  const SizedBox(height: 22),
+                          const SizedBox(height: 2),
 
-                  // Card informasi utama
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.92),
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                        color: const Color(0xFFE5EAF3),
-                        width: 1,
+                          // Nama aplikasi
+                          const Text(
+                            'SEHATI',
+                            style: TextStyle(
+                              fontSize: 42,
+                              fontWeight: FontWeight.w900,
+                              color: primaryBlue,
+                              letterSpacing: 3,
+                            ),
+                          ),
+
+                          const SizedBox(height: 8),
+
+                          // Tagline
+                          const Text(
+                            'Sahabat Digital untuk\nKesehatan Anda',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: textGrey,
+                              fontWeight: FontWeight.w500,
+                              height: 1.4,
+                            ),
+                          ),
+
+                          const SizedBox(height: 18),
+
+                          // Badge kecil
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: softBlue,
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.verified_rounded,
+                                  size: 17,
+                                  color: primaryBlue,
+                                ),
+                                SizedBox(width: 6),
+                                Text(
+                                  'Layanan Klinik Lebih Mudah',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: primaryBlue,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 22),
+
+                          // Card informasi utama
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(18),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.92),
+                              borderRadius: BorderRadius.circular(24),
+                              border: Border.all(
+                                color: const Color(0xFFE5EAF3),
+                                width: 1,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.045),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 8),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              children: const [
+                                _FeatureItem(
+                                  icon: Icons.calendar_month_rounded,
+                                  title: 'Riwayat Kunjungan',
+                                  description:
+                                      'Lihat kembali data kunjungan klinik dengan praktis.',
+                                  backgroundColor: softBlue,
+                                  iconColor: primaryBlue,
+                                ),
+                                SizedBox(height: 14),
+                                _FeatureItem(
+                                  icon: Icons.medical_information_rounded,
+                                  title: 'Informasi Kesehatan',
+                                  description:
+                                      'Dapatkan informasi layanan dan kesehatan secara mudah.',
+                                  backgroundColor: softOrange,
+                                  iconColor: orange,
+                                ),
+                                SizedBox(height: 14),
+                                _FeatureItem(
+                                  icon: Icons.alarm_rounded,
+                                  title: 'Alarm Obat',
+                                  description:
+                                      'Bantu pasien mengingat jadwal minum obat dengan lebih teratur.',
+                                  backgroundColor: softBlue,
+                                  iconColor: primaryBlue,
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 22),
+                        ],
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.045),
-                          blurRadius: 20,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      children: const [
-                        _FeatureItem(
-                          icon: Icons.calendar_month_rounded,
-                          title: 'Riwayat Kunjungan',
-                          description:
-                              'Lihat kembali data kunjungan klinik dengan praktis.',
-                          backgroundColor: softBlue,
-                          iconColor: primaryBlue,
-                        ),
-                        SizedBox(height: 14),
-                        _FeatureItem(
-                          icon: Icons.medical_information_rounded,
-                          title: 'Informasi Kesehatan',
-                          description:
-                              'Dapatkan informasi layanan dan kesehatan secara mudah.',
-                          backgroundColor: softOrange,
-                          iconColor: orange,
-                        ),
-                        SizedBox(height: 14),
-                        _FeatureItem(
-                          icon: Icons.alarm_rounded,
-                          title: 'Alarm Obat',
-                          description:
-                              'Bantu pasien mengingat jadwal minum obat dengan lebih teratur.',
-                          backgroundColor: softBlue,
-                          iconColor: primaryBlue,
-                        ),
-                      ],
                     ),
                   ),
-
-                  const Spacer(),
 
                   // Tombol mulai
                   SizedBox(
